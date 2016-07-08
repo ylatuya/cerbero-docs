@@ -7,9 +7,13 @@ The first step is to fetch the latest Cerbero from git:
     $ git clone http://anongit.freedesktop.org/git/gstreamer/sdk/cerbero.git cerbero.git
     $ cd cerbero.git
 
-By default, this will build the latest git version of GStreamer. If you want to, for example, build the 1.4 stable release, you can checkout the `1.4` branch like so:
+By default, this will build the latest git version of GStreamer. If you want to, for example, build the 1.8 stable release, you can checkout the `1.8` branch like so:
 
-    $ git checkout 1.4
+    $ git checkout 1.8
+
+If you have multiple remotes, you will need to specify the pathspec and the branch name explicitly:
+
+    $ git checkout -b 1.8 origin/1.8
     
 You can switch back by doing:
 
@@ -41,10 +45,64 @@ Out of all the files and directories inside the Cerbero git directory, the follo
 
 `recipes` is where you'll find the `.recipe` files that fetch, build, and install the sources for a piece of software. These are in the form of a Python derived class that overrides methods for fetching, building, and installing.
 
-`packages` has `.package` files which list the files that each package will contain (`.rpm`, `.deb`, `.framework`, or just `.tar.bz2`). Each package file is supposed to list all the files necessary for making a particular set of libraries work.
+`packages` has `.package` files which list the files that each package will contain. Packages can be `.rpm`, `.deb`, `.framework`, `.msi` and `.msm`, just `.tar.bz2`, and so on. Each package file is supposed to list all the files necessary for making a particular set of libraries work. This will create two sets of packages: one contains runtime libraries and executables and the other will have development libraries and headers.
 
 ## Command-Line Interface <a id="cli-usage"></a>
 
-Let's start with building GStreamer 1.x for 
+Let's start with building GStreamer 1.x for the native platform and architecture. First, we must bootstrap the Cerbero build environment.
+
+    $ python2 cerbero-uninstalled bootstrap
+
+Next, we can build a specific recipe. Let's say, we only want the core GStreamer libraries and GStreamer base plugins
+
+    $ python2 cerbero-uninstalled build gst-plugins-base-1.0
+
+This will build all the recipes that are needed by `gst-plugins-base-1.0.recipe` (found in the `recipes` directory) and then build the recipe itself.
+
+We can also build an entire package in one go. Such as the set of core GStreamer libraries and plugins:
+
+    $ python2 cerbero-uninstalled package gstreamer-1.0-core
+
+Or the entire set of GStreamer libraries and plugins:
+
+    $ python2 cerbero-uninstalled package gstreamer-1.0
+
+While on Linux, to cross-compile for Windows, you just need to add a `-c` argument specifying the appropriate configuration file to use:
+
+    $ python2 cerbero-uninstalled -c config/cross-win32.cbc package gstreamer-1.0
+
+While on Windows, to build for 32-bit x86 using MinGW and the MSVC toolchain (wherever possible), the config file to use is:
+
+    $ python2 cerbero-uninstalled -c config/win32-mixed-msvc.cbc package gstreamer-1.0
 
 ## Supported Architectures and Platforms <a id="supported-platforms"></a>
+
+Currently Cerbero supports the following architecture, platform, and toolchain combinations:
+
+| Platforms         | Architectures               | Toolchains      |
+|-------------------|-----------------------------|-----------------|
+| Linux             | x86, x86_64 (in theory any) | GCC             |
+| Windows           | x86, x86_64                 | MinGW/GCC, MSVC |
+| OS X              | x86_64, x86, ppc, universal | LLVM/Clang      |
+| iOS (cross)       | arm, arm64, x86             | LLVM/Clang      |
+| Android (cross)   | arm, arm64, x86             | GCC             |
+| Windows (cross)   | x86, x86_64                 | MinGW/GCC       |
+| Linux (cross)     | x86, arm                    | GCC             |
+
+Support for LLVM/Clang on Linux and for GCC on OS X is easy to add if needed.
+
+Cross-compilation targetting Windows is currently only available on Linux.
+
+Of particular note is that while building natively on Windows with the use of Meson build files, Cerbero is able to build GStreamer and its core dependencies entirely with the Microsoft Visual C++ compiler. The full list of recipes that can use it are:
+
+| bzip2.recipe |
+| orc.recipe |
+| libffi.recipe |
+| glib.recipe |
+| gstreamer-1.0.recipe |
+| gst-plugins-base-1.0.recipe |
+| gst-plugins-good-1.0.recipe |
+| gst-plugins-bad-1.0.recipe |
+| gst-plugins-ugly-1.0.recipe |
+
+This feature is enabled by the use of `config/win32-mixed-msvc.cbc` as demonstrated in the previous section. By default if no configuration is specified the Meson build files use MinGW on Windows.
