@@ -207,6 +207,8 @@ This feature is enabled by the use of `config/win32-mixed-msvc.cbc` as demonstra
 
 A recipe describes the way a specific project (repository or source tarball) is configured, built, and installed. It specifies the URI for the source tree (http, git, etc), the build type (Autotools, CMake, Meson, Custom), the version number (only used while packaging), the dependencies (other recipes needed), patches, and so on.
 
+#### Sample Recipe
+
 ```
 class Recipe(recipe.Recipe):
     name = 'json-glib'
@@ -223,6 +225,8 @@ As you can see, the syntax is similar to that of Python. In fact, it *is* Python
 
 In technical terms, each recipe in the `recipes/` directory just extends the `recipe.Recipe` class defined in `cerbero/build/recipe.py`. The `metaclass` of the `recipe.Recipe` adds attributes based on the `btype` variable from classes in `cerbero/build/build.py` and based on the `stype` variable from classes in `cerbero/build/source.py`. There is more to it, but these are the two most important interactions.
 
+#### Basic Attributes
+
 `name` is the name of the recipe. The filename of the recipe does not matter at all. This variable is used as the name and it must be unique.
 
 `version` is only used in build paths and has no other effect. It is still a good idea to keep it in sync with the project version.
@@ -236,6 +240,8 @@ In technical terms, each recipe in the `recipes/` directory just extends the `re
 `deps` is a list of recipe names that are needed for this recipe to be built.
 
 Besides these basic attributes, there are other sourcetype-specific and buildtype-specific attributes. We will also look at the function attributes that can be defined in the recipe.
+
+#### Extended Sample Recipe
 
 ```
 class Recipe(recipe.Recipe):
@@ -267,6 +273,8 @@ class Recipe(recipe.Recipe):
             self.append_env['CFLAGS'] += '-fno-omit-pointer '
 ```
 
+#### More Attributes
+
 `url` is only used when the `stype` is `TARBALL` and it defines a single HTTP(S) URL to download and extract for use as the source tarball. The supported compression formats are `tar` (`gzip`, `bzip2`, `xz`) and `zip`.
 
 When the `stype` is GIT, two separate variables are used instead: `remotes` and `commit`. `remotes` is a `dict` of one or more git URLs from which to fetch the source. `commit` is a revision specification that points to something that can be checked out. This can be a branch, a tag, a specific commit, etc. For example:
@@ -286,6 +294,8 @@ commit = 'github/my-work-branch'
 `configure_options` is used when `btype` is `AUTOTOOLS`, `MAKEFILE`, `CMAKE`, and `MESON`. Optionally, you can also specify the script that runs configure and takes these arguments with 'config_sh'.
 
 `files_*` variables define the executables (`files_bins`), libraries (`files_libs`), headers and pkg-config files and so on (`files_devel`), and typelibs `files_typelibs`. These control which files are copied into the packages (generated with the `package` command), and into which package (development or runtime). Besides these, there are several other file-related variables that are quite self-explanatory. Please see [gstreamer-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gstreamer-1.0.recipe#n30) and [gst-plugins-bad-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gst-plugins-bad-1.0.recipe#n37).
+
+#### Recipe Methods
 
 The `prepare` method on the class is run when the recipe is parsed and the recipe object has been created. This happens for all recipes known to Cerbero every time a command is run. It can set attributes on the recipe such as the environment to be used for it (`self.append_env`, it can modify the values of the instance attributes described above, and so on. It does not have access to the sources or the build result.
 
