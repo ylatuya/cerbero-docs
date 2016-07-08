@@ -291,7 +291,7 @@ commit = 'github/my-work-branch'
 
 `autoreconf` is used when `btype` is `AUTOTOOLS` and forces an autoreconf when set to `True`. Optionally, you can also specify a specific script to run for doing the autoreconf.
 
-`configure_options` is used when `btype` is `AUTOTOOLS`, `MAKEFILE`, `CMAKE`, and `MESON`. Optionally, you can also specify the script that runs configure and takes these arguments with 'config_sh'.
+`configure_options` is used when `btype` is `AUTOTOOLS`, `MAKEFILE`, `CMAKE`, and `MESON`. Optionally, you can also specify the script that runs configure and takes these arguments with `config_sh`.
 
 `files_*` variables define the executables (`files_bins`), libraries (`files_libs`), headers and pkg-config files and so on (`files_devel`), and typelibs `files_typelibs`. These control which files are copied into the packages (generated with the `package` command), and into which package (development or runtime). Besides these, there are several other file-related variables that are quite self-explanatory. Please see [gstreamer-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gstreamer-1.0.recipe#n30) and [gst-plugins-bad-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gst-plugins-bad-1.0.recipe#n37).
 
@@ -303,3 +303,56 @@ In the unlikely case that you need to intervene during the build process itself,
 
 If you want to make changes to the installed files after install, you can implement a method called `post_install`. The default implementation is to do nothing.
 
+## Fetching and Extraction <a id="fetch-extract"></a>
+
+For this entire section, it will be assumed that your Cerbero home is set to `~/cerbero`. You can change this value by adding `home_dir = '/some/path/to/dir'` to `~/.cerbero/cerbero.cbc`.
+
+#### Fetch
+
+If `stype` is `TARBALL`, either `wget` or `curl` is used to download the specified URL. If `stype` is `GIT`, `git` is used to fetch all the specified `remotes` and then the tree-ish specified in `commit` is checked out. All this is stored in `~/cerbero/sources/local`. The contents of this directory are shared between all architectures and configurations since it contains unmodified sources downloaded from remote servers.
+
+#### Extract
+
+The next step is to extract and patch these sources in a recipe-specific subdir inside a configuration-specific directory. This can be, for instance, `~/cerbero/sources/windows_x86/json-glib-1.0.4`. This same directory is later used for `configure`, `compile`, etc.
+
+All this is done as part of the `fetch` and `extract` methods in the corresponding class in `cerbero/build/source.py`.
+
+## Building and Logging <a id="building-logging"></a>
+
+The standard build steps every project goes through are:
+
+### `configure`
+
+For Autotools this might involve running `autoreconf` (if `self.autoreconf = True`), followed by running `./configure` (or the value of `config_sh`).
+
+For Meson, this means running `meson` which will generate the `build.ninja` file to actually build the project.
+
+### `compile`
+
+For Autotools this runs `make` (with or without a jobs `-j` argument depending on the configuration)
+
+For Meson this runs `ninja` (or `ninja-build`)
+
+### `install`
+
+For Autotools this runs `make install` with the `DESTDIR` environment variable set.
+
+For Meson this runs `ninja install` with the `DESTDIR` environment variable set.
+
+In both cases, the `DESTDIR` env variable points to a configuration-specific directory inside the Cerbero home dir. This can be, for instance, `~/cerbero/dist/windows_x86` or `~/cerbero/dist/linux_x86_64`, and so on.
+
+### `post_install`
+
+By default, this method does nothing at all. If you wish to manipulate the installed files, you can implement it in your recipe.
+
+### `gen_library_file`
+
+On Windows, an extra step is run after `post_install`. This step generates import libraries.
+
+When `btype` is `MESON` and the toolchain used is MSVC, this step creates `.dll.a` import libraries that are used by the MinGW toolchain for linking to the generated DLLs.
+
+When `btype` is anything else, this step creates `.lib` import libraries that are needed by the MSVC toolchain for linking to the generated DLLs.
+
+Note: MinGW can consume MSVC-style `.lib` import libraries too, but it is sometimes unable to resolve variables defined in them, so we always generate `.dll.a` import libraries since those don't have this problem.
+
+### Logging
