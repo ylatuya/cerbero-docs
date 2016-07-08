@@ -81,15 +81,106 @@ While on Windows, to build for 32-bit x86 using MinGW and the MSVC toolchain (wh
 
 Currently Cerbero supports the following architecture, platform, and toolchain combinations:
 
-| Platforms         | Architectures               | Toolchains      |
-|-------------------|-----------------------------|-----------------|
-| Linux             | x86, x86_64 (in theory any) | GCC             |
-| Windows           | x86, x86_64                 | MinGW/GCC, MSVC |
-| OS X              | x86_64, x86, ppc, universal | LLVM/Clang      |
-| iOS (cross)       | arm, arm64, x86             | LLVM/Clang      |
-| Android (cross)   | arm, arm64, x86             | GCC             |
-| Windows (cross)   | x86, x86_64                 | MinGW/GCC       |
-| Linux (cross)     | x86, arm                    | GCC             |
+<table>
+  <tr>
+    <th>Platforms</th>
+    <th>Toolchain</th>
+    <th>Architecture</th>
+    <th>Configuration</th>
+  </tr>
+  <tr>
+    <td>Linux</td>
+    <td>GCC</td>
+    <td>any</td>
+    <td>(native, none)</td>
+  </tr>
+  <tr>
+    <td rowspan="4">Windows</td>
+    <td rowspan="2">MinGW/GCC</td>
+    <td>x86</td>
+    <td>win32.cbc</td>
+  </tr>
+  <tr>
+    <td>x86_64</td>
+    <td>win64.cbc</td>
+  </tr>
+  <tr>
+    <td rowspan="2">MSVC</td>
+    <td>x86</td>
+    <td>win32-mixed-msvc</td>
+  </tr>
+  <tr>
+    <td>x86_64</td>
+    <td>win64-mixed-msvc</td>
+  </tr>
+  <tr>
+    <td rowspan="2">OS X</td>
+    <td rowspan="2">Clang</td>
+    <td>x86_64</td>
+    <td>osx-x86-64.cbc</td>
+  </tr>
+  <tr>
+    <td>universal</td>
+    <td>osx-universal.cbc</td>
+  </tr>
+  <tr>
+    <td rowspan="4">iOS (cross)</td>
+    <td rowspan="4">Clang</td>
+    <td>armv7</td>
+    <td>cross-ios-armv7.cbc</td>
+  </tr>
+  <tr>
+    <td>arm64</td>
+    <td>cross-ios-arm64.cbc</td>
+  </tr>
+  <tr>
+    <td>x86_64</td>
+    <td>cross-ios-x86-64.cbc</td>
+  </tr>
+  <tr>
+    <td>universal</td>
+    <td>cross-ios-universal.cbc</td>
+  </tr>
+  <tr>
+    <td rowspan="4">Android (cross)</td>
+    <td rowspan="4">GCC</td>
+    <td>armv7</td>
+    <td>cross-android-armv7.cbc</td>
+  </tr>
+  <tr>
+    <td>arm64</td>
+    <td>cross-android-arm64.cbc</td>
+  </tr>
+  <tr>
+    <td>x86</td>
+    <td>cross-android-x86.cbc</td>
+  </tr>
+  <tr>
+    <td>x86_64</td>
+    <td>cross-android-x86-64.cbc</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Windows (cross)</td>
+    <td rowspan="2">MinGW/GCC</td>
+    <td>x86</td>
+    <td>cross-win32.cbc</td>
+  </tr>
+  <tr>
+    <td>x86_64</td>
+    <td>cross-win64.cbc</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Linux (cross)</td>
+    <td rowspan="2">GCC</td>
+    <td>x86</td>
+    <td>cross-lin-x86.cbc</td>
+  </tr>
+  <tr>
+    <td>arm</td>
+    <td>cross-lin-arm.cbc</td>
+  </tr>
+</table>
+
 
 Support for LLVM/Clang on Linux and for GCC on OS X is easy to add if needed.
 
