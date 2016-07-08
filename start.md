@@ -321,19 +321,19 @@ All this is done as part of the `fetch` and `extract` methods in the correspondi
 
 The standard build steps every project goes through are:
 
-### `configure`
+#### `configure`
 
 For Autotools this might involve running `autoreconf` (if `self.autoreconf = True`), followed by running `./configure` (or the value of `config_sh`).
 
 For Meson, this means running `meson` which will generate the `build.ninja` file to actually build the project.
 
-### `compile`
+#### `compile`
 
 For Autotools this runs `make` (with or without a jobs `-j` argument depending on the configuration)
 
 For Meson this runs `ninja` (or `ninja-build`)
 
-### `install`
+#### `install`
 
 For Autotools this runs `make install` with the `DESTDIR` environment variable set.
 
@@ -341,11 +341,11 @@ For Meson this runs `ninja install` with the `DESTDIR` environment variable set.
 
 In both cases, the `DESTDIR` env variable points to a configuration-specific directory inside the Cerbero home dir. This can be, for instance, `~/cerbero/dist/windows_x86` or `~/cerbero/dist/linux_x86_64`, and so on.
 
-### `post_install`
+#### `post_install`
 
 By default, this method does nothing at all. If you wish to manipulate the installed files, you can implement it in your recipe.
 
-### `gen_library_file`
+#### `gen_library_file`
 
 On Windows, an extra step is run after `post_install`. This step generates import libraries.
 
@@ -355,4 +355,4 @@ When `btype` is anything else, this step creates `.lib` import libraries that ar
 
 Note: MinGW can consume MSVC-style `.lib` import libraries too, but it is sometimes unable to resolve variables defined in them, so we always generate `.dll.a` import libraries since those don't have this problem.
 
-### Logging
+#### Logging
