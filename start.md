@@ -26,6 +26,8 @@ And so on.
  * [Command-Line Interface](#cli-usage)
  * [Supported Architectures and Platforms](#supported-platforms)
  * [Recipes](#recipe-format)
+ * [Fetching and Extracting](#fetch-extract)
+ * [Building and Logging](#building-logging)
 
 ## Directory Structure <a id="dir-structure"></a>
 
