@@ -76,6 +76,10 @@ While on Linux, to cross-compile for Windows, you just need to add a `-c` argume
 
     $ python2 cerbero-uninstalled -c config/cross-win32.cbc package gstreamer-1.0
 
+You can also cross-compile for 32-bit Linux when building on 64-bit Linux:
+
+    $ python2 cerbero-uninstalled -c config/cross-lin-x86.cbc package gstreamer-1.0
+
 While on Windows, to build for 32-bit x86 using MinGW and the MSVC toolchain (wherever possible), the config file to use is:
 
     $ python2 cerbero-uninstalled -c config/win32-mixed-msvc.cbc package gstreamer-1.0
