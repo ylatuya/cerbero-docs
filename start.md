@@ -25,6 +25,7 @@ And so on.
  * [Directory Structure](#dir-structure)
  * [Command-Line Interface](#cli-usage)
  * [Supported Architectures and Platforms](#supported-platforms)
+ * [Recipes](#recipe-format)
 
 ## Directory Structure <a id="dir-structure"></a>
 
@@ -201,3 +202,94 @@ Of particular note is that while building natively on Windows with the use of Me
 | gst-plugins-ugly-1.0.recipe |
 
 This feature is enabled by the use of `config/win32-mixed-msvc.cbc` as demonstrated in the previous section. By default if no configuration is specified the Meson build files use MinGW on Windows.
+
+## Recipes <a id="recipe-format"></a>
+
+A recipe describes the way a specific project (repository or source tarball) is configured, built, and installed. It specifies the URI for the source tree (http, git, etc), the build type (Autotools, CMake, Meson, Custom), the version number (only used while packaging), the dependencies (other recipes needed), patches, and so on.
+
+```
+class Recipe(recipe.Recipe):
+    name = 'json-glib'
+    version = '1.0.4'
+    licenses = [License.LGPLv2_1Plus]
+    btype = BuildType.AUTOTOOLS
+    stype = SourceType.TARBALL
+    url = 'http://download.gnome.org/sources/{0}/1.0/{0}-{1}.tar.xz'.format(name, version)
+    patches = ['json-glib/0001-Don-t-override-our-own-ACLOCAL_FLAGS-but-append-them.patch']
+    deps = ['glib']
+```
+
+As you can see, the syntax is similar to that of Python. In fact, it *is* Python. It's a simple class definition with attributes attached.
+
+In technical terms, each recipe in the `recipes/` directory just extends the `recipe.Recipe` class defined in `cerbero/build/recipe.py`. The `metaclass` of the `recipe.Recipe` adds attributes based on the `btype` variable from classes in `cerbero/build/build.py` and based on the `stype` variable from classes in `cerbero/build/source.py`. There is more to it, but these are the two most important interactions.
+
+`name` is the name of the recipe. The filename of the recipe does not matter at all. This variable is used as the name and it must be unique.
+
+`version` is only used in build paths and has no other effect. It is still a good idea to keep it in sync with the project version.
+
+`stype` is the source type to be fetched. The most common values are `TARBALL`, `GIT`, `SVN`, and `CUSTOM` (no sources to download).
+
+`btype` is the build system type that will be used. Valid values are `MAKEFILE`, `AUTOTOOLS`, `CMAKE`, `MESON`, and `CUSTOM`. The default if unspecified is `AUTOTOOLS`.
+
+`licenses` is a list of licenses. The full list of available licenses is in `cerbero/enums.py`.
+
+`deps` is a list of recipe names that are needed for this recipe to be built.
+
+Besides these basic attributes, there are other sourcetype-specific and buildtype-specific attributes. We will also look at the function attributes that can be defined in the recipe.
+
+```
+class Recipe(recipe.Recipe):
+    name = 'json-glib'
+    version = '1.0.4'
+    licenses = [License.LGPLv2_1Plus]
+    btype = BuildType.AUTOTOOLS
+    stype = SourceType.TARBALL
+    url = 'http://download.gnome.org/sources/{0}/1.0/{0}-{1}.tar.xz'.format(name, version)
+    patches = ['json-glib/0001-Don-t-override-our-own-ACLOCAL_FLAGS-but-append-them.patch']
+    deps = ['glib']
+
+    autoreconf = True
+    #autoreconf_sh = './autogen.sh --noconfigure'
+    configure_options = '--enable-static'
+    #config_sh = './configure'
+
+    files_bins = ['json-glib-validate', 'json-glib-format']
+    files_libs = ['libjson-glib-1.0']
+    files_devel  = ['include/json-glib-1.0', 'lib/pkgconfig/json-glib-1.0.pc']
+    files_typelibs = ['Json-1.0']
+
+    def prepare(self):
+        self.append_env['CFLAGS'] = ' -Wno-error '
+        if self.config.target_platform == Platform.WINDOWS:
+            # Don't need autoreconf on MinGW so don't do it since it's very slow
+            self.autoreconf = False
+        if self.config.target_arch == Architecture.X86_64:
+            self.append_env['CFLAGS'] += '-fno-omit-pointer '
+```
+
+`url` is only used when the `stype` is `TARBALL` and it defines a single HTTP(S) URL to download and extract for use as the source tarball. The supported compression formats are `tar` (`gzip`, `bzip2`, `xz`) and `zip`.
+
+When the `stype` is GIT, two separate variables are used instead: `remotes` and `commit`. `remotes` is a `dict` of one or more git URLs from which to fetch the source. `commit` is a revision specification that points to something that can be checked out. This can be a branch, a tag, a specific commit, etc. For example:
+
+```
+remotes = {'origin' : 'git://anongit.freedesktop.org/gstreamer/gstreamer',
+           'github: 'https://github.com/myorg/gstreamer.git'}
+#commit = 'origin/master' (original value)
+#commit = '1ed65e56' (a commit)
+commit = 'github/my-work-branch'
+```
+
+`patches` is a list of patches that will be applied to the source tree after extraction. The path is relative to the recipe's directory.
+
+`autoreconf` is used when `btype` is `AUTOTOOLS` and forces an autoreconf when set to `True`. Optionally, you can also specify a specific script to run for doing the autoreconf.
+
+`configure_options` is used when `btype` is `AUTOTOOLS`, `MAKEFILE`, `CMAKE`, and `MESON`. Optionally, you can also specify the script that runs configure and takes these arguments with 'config_sh'.
+
+`files_*` variables define the executables (`files_bins`), libraries (`files_libs`), headers and pkg-config files and so on (`files_devel`), and typelibs `files_typelibs`. These control which files are copied into the packages (generated with the `package` command), and into which package (development or runtime). Besides these, there are several other file-related variables that are quite self-explanatory. Please see [gstreamer-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gstreamer-1.0.recipe#n30) and [gst-plugins-bad-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gst-plugins-bad-1.0.recipe#n37).
+
+The `prepare` method on the class is run when the recipe is parsed and the recipe object has been created. This happens for all recipes known to Cerbero every time a command is run. It can set attributes on the recipe such as the environment to be used for it (`self.append_env`, it can modify the values of the instance attributes described above, and so on. It does not have access to the sources or the build result.
+
+In the unlikely case that you need to intervene during the build process itself, you can override or extend the `configure`, `compile`, and `install` methods. The default implementations of these are defined in `cerbero/build/build.py` and depend on the `btype` of the recipe. The best way to understand how these work is by looking at examples such as [openh264.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/openh264.recipe).
+
+If you want to make changes to the installed files after install, you can implement a method called `post_install`. The default implementation is to do nothing.
+
