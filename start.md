@@ -353,7 +353,7 @@ By default, this method does nothing at all. If you wish to manipulate the insta
 
 #### `gen_library_file`
 
-On Windows, an extra step is run after `post_install`. This step generates import libraries.
+When building for Windows, an extra step is run after `post_install`. This step generates import libraries.
 
 When `btype` is `MESON` and the toolchain used is MSVC, this step creates `.dll.a` import libraries that are used by the MinGW toolchain for linking to the generated DLLs.
 
@@ -362,3 +362,11 @@ When `btype` is anything else, this step creates `.lib` import libraries that ar
 Note: MinGW can consume MSVC-style `.lib` import libraries too, but it is sometimes unable to resolve variables defined in them, so we always generate `.dll.a` import libraries since those don't have this problem.
 
 #### Logging
+
+Cerbero always logs all stdout and stderr output to `~/cerbero/logs`. The logging for each build step described above is stored inside a configuration-specific directory with a flat namespace.
+
+For instance, the configure log for cross-compiling glib on 32-bit Windows on Linux would be stored at `~/cerbero/logs/windows_x86/glib-configure.log`.
+
+The steps that are logged here are `fetch`, `extract`, `configure`, `compile`, `install`, and for Windows `gen_library_file`.
+
+When building with Meson, one might need to look at the internal logging stored by Meson itself. That can be found in the source build directory. For example, `~/cerbero/sources/linux_x86_64/gstreamer-1.0-1.8/cerbero-build-dir/meson-logs/meson-log.txt`.
