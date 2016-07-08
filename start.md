@@ -95,9 +95,11 @@ Cross-compilation targetting Windows is currently only available on Linux.
 
 Of particular note is that while building natively on Windows with the use of Meson build files, Cerbero is able to build GStreamer and its core dependencies entirely with the Microsoft Visual C++ compiler. The full list of recipes that can use it are:
 
+| Recipes that can use MSVC |
+|---------------------------|
 | bzip2.recipe |
 | orc.recipe |
-| libffi.recipe |
+| libffi.recipe (only 32-bit) |
 | glib.recipe |
 | gstreamer-1.0.recipe |
 | gst-plugins-base-1.0.recipe |
