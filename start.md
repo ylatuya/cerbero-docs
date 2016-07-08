@@ -49,6 +49,8 @@ Out of all the files and directories inside the Cerbero git directory, the follo
 
 ## Command-Line Interface <a id="cli-usage"></a>
 
+Although Cerbero can be installed on your system using the bundled `Makefile`, the most common (and recommended) way to use it is by directly running it from the git repository as shown in the following commands.
+
 Let's start with building GStreamer 1.x for the native platform and architecture. First, we must bootstrap the Cerbero build environment.
 
     $ python2 cerbero-uninstalled bootstrap
