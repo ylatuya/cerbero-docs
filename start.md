@@ -217,7 +217,7 @@ A recipe describes the way a specific project (repository or source tarball) is 
 
 #### Sample Recipe
 
-```
+```python
 class Recipe(recipe.Recipe):
     name = 'json-glib'
     version = '1.0.4'
@@ -251,7 +251,7 @@ Besides these basic attributes, there are other sourcetype-specific and buildtyp
 
 #### Extended Sample Recipe
 
-```
+```python
 class Recipe(recipe.Recipe):
     name = 'json-glib'
     version = '1.0.4'
@@ -287,7 +287,7 @@ class Recipe(recipe.Recipe):
 
 When the `stype` is GIT, two separate variables are used instead: `remotes` and `commit`. `remotes` is a `dict` of one or more git URLs from which to fetch the source. `commit` is a revision specification that points to something that can be checked out. This can be a branch, a tag, a specific commit, etc. For example:
 
-```
+```python
 remotes = {'origin' : 'git://anongit.freedesktop.org/gstreamer/gstreamer',
            'github: 'https://github.com/myorg/gstreamer.git'}
 #commit = 'origin/master' (original value)
@@ -413,7 +413,7 @@ The cleanest and simplest way to build GStreamer with your own changes is to cre
 
 Let's say we want to make changes to `gst-plugins-base-1.0`. First we look at `recipes/gst-plugins-base-1.0.recipe` and look for the `remotes` and `commit` variables. Let's say they look like this:
 
-```
+```python
 remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
 commit = 'origin/1.8'
 ```
@@ -432,7 +432,7 @@ Next, we can make any changes we need to make and optionally push it to our own 
 
 Now we edit the recipe to refer to our Git server's repository
 
-```
+```python
 remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base',
            'my-remote': 'git@git.myserver.net:projects/gst-plugins-base',}
 commit = 'my-remote/my-1.8'
@@ -440,7 +440,7 @@ commit = 'my-remote/my-1.8'
 
 **If you don't want to use a git server**, you can also just use your local git repository
 
-```
+```python
 remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base',
            'local': 'C:/projects/gst-plugins-base',}
 commit = 'local/my-1.8'
@@ -460,31 +460,35 @@ Of course if you use a custom source tree with `genvssln`, you shouldn't use `--
 
 If you want to fetch any changes done upstream and integrate them with your own changes in your branch, you can do a merge.
 
-    # Ensure you're on your work branch
-    $ git checkout my-1.8
-    # Fetch all upstream changes
-    $ git fetch origin
-    # Merge upstream's changes with your own
-    $ git merge origin/1.8
-    # ... resolve any merge conflicts, commit the result ...
-    # Push the merged branch
-    $ git push my-remote my-1.8
+```sh
+# Ensure you're on your work branch
+$ git checkout my-1.8
+# Fetch all upstream changes
+$ git fetch origin
+# Merge upstream's changes with your own
+$ git merge origin/1.8
+# ... resolve any merge conflicts, commit the result ...
+# Push the merged branch
+$ git push my-remote my-1.8
+```
 
 If you have not pushed your work anywhere else (i.e., you do not use any git servers), you can do a rebase instead of a merge.
 
-    # Ensure you're on your work branch
-    $ git checkout my-1.8
-    # Fetch all upstream changes
-    $ git fetch origin
-    # Rebase your changes on top of upstream's changes
-    $ git rebase origin/1.8
-    # ... resolve any rebase conflicts; follow the instructions given by git ...
+```sh
+# Ensure you're on your work branch
+$ git checkout my-1.8
+# Fetch all upstream changes
+$ git fetch origin
+# Rebase your changes on top of upstream's changes
+$ git rebase origin/1.8
+# ... resolve any rebase conflicts; follow the instructions given by git ...
+```
 
 #### Development Using Recipe Patches
 
 Another method of doing GStreamer development using Cerbero is by adding patches to the recipe that you want to make changes to by appending to (or creating a new) `patches` recipe attribute. Let's say you have the following recipe.
 
-```
+```python
 class Recipe(recipe.Recipe):
     name = 'gst-plugins-base-1.0'
     version = '1.8'
@@ -502,7 +506,7 @@ Note that it has no patches right now. The next step is to create a directory ca
 
 Now you put your patches (they must be git-formatted) inside this directory and list them in a new `patches` attribute
 
-```
+```python
 class Recipe(recipe.Recipe):
     name = 'gst-plugins-base-1.0'
     version = '1.8'
@@ -526,12 +530,14 @@ These two methods are very clean and will never cause strange Cerbero issues bec
 
 This method is a short-cut and will work most of the time, but if you mess up, you will lose all your changes. Also, if you don't understand how Cerbero works, you will likely install garbage to your install prefix and will have to `wipe` everything. The basic idea is that you can directly make changes to the Cerbero source repositories, invoke `make` or `ninja` manually, and check if your patches actually work. Here's a series of commands that show how to do this for a recipe that uses Meson and Ninja.
 
-    $ cd ~/cerbero/sources/windows_x86/gstreamer-1.0-1.8
-    # ... make quick changes ...
-    $ cd cerbero-build-dir
-    # This will invoke `meson` automatically if you changed the build files
-    $ ninja -v
-    $ GST_PLUGIN_PATH_1_0=$PWD/plugins/elements ./tools/gst-inspect-1.0.exe coreelements
+```sh
+$ cd ~/cerbero/sources/windows_x86/gstreamer-1.0-1.8
+# ... make quick changes ...
+$ cd cerbero-build-dir
+# This will invoke `meson` automatically if you changed the build files
+$ ninja -v
+$ GST_PLUGIN_PATH_1_0=$PWD/plugins/elements ./tools/gst-inspect-1.0.exe coreelements
+```
 
 Be careful while running `ninja install` or `make install` since recipes sometimes have custom arguments, environment variables, `post_install` hooks, `gen_library_file`, etc that need to be done afterwards.
 
