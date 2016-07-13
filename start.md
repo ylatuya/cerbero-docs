@@ -383,7 +383,9 @@ To generate `vcxproj`s and a `sln` for the same:
 
     $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc genvssln glib
 
-This will run `meson --backend=vs2015` and print the path to the solution file. You can also use the `--open` argument to open the directory in `explorer` so you can open and build the solution in Visual Studio.
+This will run `meson --backend=vs2015` inside the Cerbero environment which will embed all the necessary information (libraries, library paths, include paths, cflags, etc) inside the project files. It will then print the path to the solution file. Note that this means the project files will refer to the libraries *built by Cerbero* for external dependencies.
+
+You can also use the `--open` argument to open the directory in `explorer` so you can open and build the solution in Visual Studio.
 
     $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc genvssln --open glib
 
