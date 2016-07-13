@@ -299,7 +299,7 @@ commit = 'github/my-work-branch'
 
 `configure_options` is used when `btype` is `AUTOTOOLS`, `MAKEFILE`, `CMAKE`, and `MESON`. Optionally, you can also specify the script that runs configure and takes these arguments with `config_sh`.
 
-`files_*` variables define the executables (`files_bins`), libraries (`files_libs`), headers and pkg-config files and so on (`files_devel`), and typelibs `files_typelibs`. These control which files are copied into the packages (generated with the `package` command), and into which package (development or runtime). Besides these, there are several other file-related variables that are quite self-explanatory. Please see [gstreamer-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gstreamer-1.0.recipe#n30) and [gst-plugins-bad-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gst-plugins-bad-1.0.recipe#n37).
+`files_*` variables define the executables (`files_bins`), libraries (`files_libs`), headers and pkg-config files and so on (`files_devel`), and typelibs `files_typelibs`. These control which files are copied into the packages (generated with the `package` command), and into which package (development or runtime). Besides these, there are several other file-related variables that are quite self-explanatory. Please see [gstreamer-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gstreamer-1.0.recipe#n30) and [gst-plugins-bad-1.0.recipe](https://cgit.freedesktop.org/gstreamer/cerbero/tree/recipes/gst-plugins-bad-1.0.recipe#n37). For example, for specifying and categorising plugins, we use the `files_plugins_*` variables.
 
 #### Recipe Methods
 
