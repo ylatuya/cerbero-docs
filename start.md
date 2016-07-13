@@ -458,6 +458,28 @@ If you base your entire workflow around Visual Studio, you can skip the `buildon
 
 Of course if you use a custom source tree with `genvssln`, you shouldn't use `--fetch` and in fact it will be ignored if `-s/--source-dir` is specified.
 
+If you want to fetch any changes done upstream and integrate them with your own changes in your branch, you can do a merge.
+
+    # Ensure you're on your work branch
+    $ git checkout my-1.8
+    # Fetch all upstream changes
+    $ git fetch origin
+    # Merge upstream's changes with your own
+    $ git merge origin/1.8
+    # ... resolve any merge conflicts, commit the result ...
+    # Push the merged branch
+    $ git push my-remote my-1.8
+
+If you have not pushed your work anywhere else (i.e., you do not use any git servers), you can do a rebase instead of a merge.
+
+    # Ensure you're on your work branch
+    $ git checkout my-1.8
+    # Fetch all upstream changes
+    $ git fetch origin
+    # Rebase your changes on top of upstream's changes
+    $ git rebase origin/1.8
+    # ... resolve any rebase conflicts; follow the instructions given by git ...
+
 #### Development Using Recipe Patches
 
 Another method of doing GStreamer development using Cerbero is by adding patches to the recipe that you want to make changes to by appending to (or creating a new) `patches` recipe attribute. Let's say you have the following recipe.
