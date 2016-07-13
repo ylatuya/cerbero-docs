@@ -29,6 +29,7 @@ And so on.
  * [Fetching and Extracting](#fetch-extract)
  * [Building and Logging](#building-logging)
  * [Generate Visual Studio projects](#vs-projects)
+ * [Development Workflow](#dev-workflow)
 
 ## Directory Structure <a id="dir-structure"></a>
 
@@ -396,6 +397,107 @@ You can also specify any other directory as the source tree for generating the V
 
     $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc genvssln -s C:/projects/glib.git glib
 
-You must be careful that the sources in the directory you are using match the recipe name that you are specifying.
+Make sure that you always use forward slashes `/` when specifying the path because `bash` reserves `\` as an escape character. You must also be careful that the sources in the directory you are using match the recipe name that you are specifying.
 
 You can now open the generated solution in Visual Studio and build it normally. The outputs will be in the same directory as the `vcxproj` for each output. So, for instance, for `glib`, `gio-2.0-0.dll`, `gio-2.0.lib`, and `gio-2.0-0.pdb` will be found in the `gio` subdirectory.
+
+## Development Workflow <a id="dev-workflow"></a>
+
+Cerbero was initially developed as a B&I system for use on build boxes/VMs and was not intended for development use since the default Linux environment provides everything you need to do GStreamer development out of the box. However, on OS X and Windows, the most convenient way to work on GStreamer itself is to setup Cerbero and use it to build GStreamer with any changes that you have made.
+
+There are three different ways to use Cerbero as a development environment. We will give the example of Windows in many of these explanations because that platform has the most number of exceptions or non-standard behaviour compared to any other platform.
+
+#### Custom Development Repositories
+
+The cleanest and simplest way to build GStreamer with your own changes is to create your own copies of the repositories you want to make changes to, and change the corresponding recipes to point to your repositories instead. To do that for specific repository, you can follow these steps:
+
+Let's say we want to make changes to `gst-plugins-base-1.0`. First we look at `recipes/gst-plugins-base-1.0.recipe` and look for the `remotes` and `commit` variables. Let's say they look like this:
+
+```
+remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
+commit = 'origin/1.8'
+```
+
+This means you want to make changes to the `1.8` branch of `origin`. So we clone that remote and create our own branch based on `1.8`.
+
+
+    $ cd projects
+    $ git clone git://anongit.freedesktop.org/gstreamer/gst-plugins-base
+    $ git checkout -b my-1.8 origin/1.8
+
+Next, we can make any changes we need to make and optionally push it to our own Git server
+
+    $ git remote add my-remote git@git.myserver.net:projects/gst-plugins-base
+    $ git push -u my-remote my-1.8
+
+Now we edit the recipe to refer to our Git server's repository
+
+```
+remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base',
+           'my-remote': 'git@git.myserver.net:projects/gst-plugins-base',}
+commit = 'my-remote/my-1.8'
+```
+
+**If you don't want to use a git server**, you can also just use your local git repository
+
+```
+remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base',
+           'local': 'C:/projects/gst-plugins-base',}
+commit = 'local/my-1.8'
+```
+
+That's it! Now you can work on your local repository, commit any changes (and push them if you use your git server as the remote) and build them using Cerbero:
+
+    $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc buildone gst-plugins-base
+
+You need to use `buildone` here instead of `build` so that the recipe status is reset and Cerbero fetches any new commits from the remotes that you have specified. With just `build` it will assume that everything is up-to-date and happily exit.
+
+If you base your entire workflow around Visual Studio, you can skip the `buildone` command from above and just run `genvssln --fetch`. Just make sure that you exit Visual Studio before running this since it will try to wipe the build dir and that will fail if Visual Studio is still open.
+
+    $ python2 cerbero-uninstalled -c config/win32-mixed-msvc.cbc genvssln --fetch --open gst-plugins-base
+
+Of course if you use a custom source tree with `genvssln`, you shouldn't use `--fetch` and in fact it will be ignored if `-s/--source-dir` is specified.
+
+#### Development Using Recipe Patches
+
+Another method of doing GStreamer development using Cerbero is by adding patches to the recipe that you want to make changes to by appending to (or creating a new) `patches` recipe attribute. Let's say you have the following recipe.
+
+```
+class Recipe(recipe.Recipe):
+    name = 'gst-plugins-base-1.0'
+    version = '1.8'
+    licenses = [License.LGPLv2Plus]
+    configure_options = "--enable-static --program-prefix= --disable-examples "
+    remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
+    commit = 'origin/master'
+    stype = SourceType.GIT
+    btype = BuildType.MESON
+```
+
+Note that it has no patches right now. The next step is to create a directory called `gst-plugins-base-1.0` (same as the `name` attribute) inside the `recipes` directory.
+
+    $ mkdir recipes/gst-plugins-base-1.0
+
+Now you put your patches (they must be git-formatted) inside this directory and list them in a new `patches` attribute
+
+```
+class Recipe(recipe.Recipe):
+    name = 'gst-plugins-base-1.0'
+    version = '1.8'
+    licenses = [License.LGPLv2Plus]
+    configure_options = "--enable-static --program-prefix= --disable-examples "
+    remotes = {'origin': 'git://anongit.freedesktop.org/gstreamer/gst-plugins-base'}
+    commit = 'origin/master'
+    stype = SourceType.GIT
+    btype = BuildType.MESON
+    patches = ['gst-plugins-base-1.0/0001-Fix-some-silly-bug.patch',
+               'gst-plugins-base-1.0/0002/Add-new-feature-foo.patch']
+```
+
+The recipe is now ready for building!
+
+    $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc build gst-plugins-base
+
+These two methods are very clean and will never cause strange Cerbero issues because they do not touch Cerbero's internal source trees or any other internal state at all. The next one does, and hence it's not a recommended method. Please don't use it unless you know exactly what you are doing. If you break anything, you get to keep the pieces.
+
+#### Development Using Cerbero's Source Repositories
