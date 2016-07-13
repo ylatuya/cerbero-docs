@@ -370,3 +370,29 @@ For instance, the configure log for cross-compiling glib on 32-bit Windows on Li
 The steps that are logged here are `fetch`, `extract`, `configure`, `compile`, `install`, and for Windows `gen_library_file`.
 
 When building with Meson, one might need to look at the internal logging stored by Meson itself. That can be found in the source build directory. For example, `~/cerbero/sources/linux_x86_64/gstreamer-1.0-1.8/cerbero-build-dir/meson-logs/meson-log.txt`.
+
+# Generating Visual Studio Projects and Solutions <a id="vs-projects"></a>
+
+On Windows, when building recipes that use Meson and support building with MSVC, Cerbero can use the Meson Visual Studio backend to generate Visual Studio 2015 projects and a solution for a specific recipe.
+
+**IMPORTANT:** Before doing this, you must ensure that the recipe has been built once by Cerbero for the selected platform.
+
+    $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc build glib
+
+To generate `vcxproj`s and a `sln` for the same:
+
+    $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc genvssln glib
+
+This will run `meson --backend=vs2015` and print the path to the solution file. You can also use the `--open` argument to open the directory in `explorer` so you can open and build the solution in Visual Studio.
+
+    $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc genvssln --open glib
+
+By default, these commands will create Visual Studio files in the Cerbero platform-specific `sources` directory. In this case, that would be `~/cerbero/sources/windows_x86_64/glib-*/` (replace `*` with the version). The solution and all related build files will be in the `vs-build-dir` sub-directory.
+
+You can also specify any other directory as the source tree for generating the Visual Studio files from with the `-s/--source-dir` option.
+
+    $ python2 cerbero-uninstalled -c config/win64-mixed-msvc.cbc genvssln -s C:/projects/glib.git glib
+
+You must be careful that the sources in the directory you are using match the recipe name that you are specifying.
+
+You can now open the generated solution in Visual Studio and build it normally. The outputs will be in the same directory as the `vcxproj` for each output. So, for instance, for `glib`, `gio-2.0-0.dll`, `gio-2.0.lib`, and `gio-2.0-0.pdb` will be found in the `gio` subdirectory.
