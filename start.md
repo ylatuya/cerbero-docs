@@ -28,6 +28,7 @@ And so on.
  * [Recipes](#recipe-format)
  * [Fetching and Extracting](#fetch-extract)
  * [Building and Logging](#building-logging)
+ * [Generate Visual Studio projects](#vs-projects)
 
 ## Directory Structure <a id="dir-structure"></a>
 
@@ -371,7 +372,7 @@ The steps that are logged here are `fetch`, `extract`, `configure`, `compile`, `
 
 When building with Meson, one might need to look at the internal logging stored by Meson itself. That can be found in the source build directory. For example, `~/cerbero/sources/linux_x86_64/gstreamer-1.0-1.8/cerbero-build-dir/meson-logs/meson-log.txt`.
 
-# Generating Visual Studio Projects and Solutions <a id="vs-projects"></a>
+## Generating Visual Studio Projects and Solutions <a id="vs-projects"></a>
 
 On Windows, when building recipes that use Meson and support building with MSVC, Cerbero can use the Meson Visual Studio backend to generate Visual Studio 2015 projects and a solution for a specific recipe.
 
