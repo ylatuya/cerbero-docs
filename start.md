@@ -48,7 +48,7 @@ Out of all the files and directories inside the Cerbero git directory, the follo
 
 `config` has the various "configurations" ([combinations of platforms and architectures](#supported-platforms)) on and for which Cerbero can be run.
 
-`recipes` is where you'll find the `.recipe` files that fetch, build, and install the sources for a piece of software. These are in the form of a Python derived class that overrides methods for fetching, building, and installing. Please see the recipe documentation for details.
+`recipes` is where you'll find the `.recipe` files that fetch, build, and install the sources for a piece of software. These are in the form of a Python derived class that overrides methods for fetching, building, and installing. Please see the [recipe documentation](#recipe-format) for details.
 
 `packages` has `.package` files which list the files that each package will contain. Packages can be `.rpm`, `.deb`, `.framework`, `.msi` and `.msm`, just `.tar.bz2`, and so on. Each package file is supposed to list all the files necessary for making a particular set of libraries work. This will create two sets of packages: one contains runtime libraries and executables and the other will have development libraries and headers.
 
