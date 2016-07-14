@@ -28,6 +28,7 @@ And so on.
  * [Recipes](#recipe-format)
  * [Fetching and Extracting](#fetch-extract)
  * [Building and Logging](#building-logging)
+ * [Packages](#package-format)
  * [Generate Visual Studio projects](#vs-projects)
  * [Development Workflow](#dev-workflow)
 
@@ -50,7 +51,7 @@ Out of all the files and directories inside the Cerbero git directory, the follo
 
 `recipes` is where you'll find the `.recipe` files that fetch, build, and install the sources for a piece of software. These are in the form of a Python derived class that overrides methods for fetching, building, and installing. Please see the [recipe documentation](#recipe-format) for details.
 
-`packages` has `.package` files which list the files that each package will contain. Packages can be `.rpm`, `.deb`, `.framework`, `.msi` and `.msm`, just `.tar.bz2`, and so on. Each package file is supposed to list all the files necessary for making a particular set of libraries work. This will create two sets of packages: one contains runtime libraries and executables and the other will have development libraries and headers.
+`packages` has `.package` files which list the files that each package will contain. Packages can be `.rpm`, `.deb`, `.framework`, `.msi` and `.msm`, just `.tar.bz2`, and so on. Each [package file](#package-format) is supposed to list all the files necessary for making a particular set of libraries work. This will create two sets of packages: one contains runtime libraries and executables and the other will have development libraries and headers.
 
 ## Command-Line Interface <a id="cli-usage"></a>
 
@@ -372,6 +373,60 @@ For instance, the configure log for cross-compiling glib on 32-bit Windows on Li
 The steps that are logged here are `fetch`, `extract`, `configure`, `compile`, `install`, and for Windows `gen_library_file`.
 
 When building with Meson, one might need to look at the internal logging stored by Meson itself. That can be found in the source build directory. For example, `~/cerbero/sources/linux_x86_64/gstreamer-1.0-1.8/cerbero-build-dir/meson-logs/meson-log.txt`.
+
+## Packages <a id="package-format"></a>
+
+Cerbero also has the concept of 'packages' each of which is essentially a manifest with metadata. Similar to a `.recipe`, a `.package` file is just a Python class with various attributes that define the class and also has a `prepare` method for runtime definition of variables. Unlike recipes, packages do not have any other methods.
+
+A package file lists one or many libraries, binaries, development files (headers, import libraries, pkg-config files, and so on), GStreamer plugins, translations, GIRs, typelibs, etc, from one or more recipes.
+
+These lists are used for creating packages for various OSes such as Debian `.deb` packages, Fedora `.rpm` packages, Windows `.msi` installers, and many more.
+
+For instance, the `gstreamer-1.0-core.package` looks like this:
+
+```python
+class Package(package.Package):
+
+    name = 'gstreamer-1.0-core'
+    shortdesc = 'GStreamer 1.0 core'
+    longdesc = 'GStreamer 1.0 core'
+    url = "http://gstreamer.freedesktop.org"
+    version = '1.8.0'
+    codename = 'Congo'
+    license = License.LGPL
+    vendor = 'GStreamer Project'
+    org = 'org.freedesktop.gstreamer'
+    uuid = 'd9626750-e8b7-4e40-944d-98b67ed0c6bf'
+    deps = ['base-system-1.0']
+
+    files = ['gstreamer-1.0', 'gst-plugins-base-1.0:bins:libs:core:lang:typelibs',
+            'gst-shell',
+            'gst-plugins-good-1.0:plugins_core:lang',
+            'gst-plugins-bad-1.0:plugins_core:lang:libs:typelibs',
+            'gst-plugins-ugly-1.0:plugins_core:lang']
+    files_devel = ['gstreamer-1.0-static', 'gst-plugins-base-1.0-static:plugins_core_devel',
+                   'gst-plugins-good-1.0-static:plugins_core_devel',
+                   'gst-plugins-bad-1.0-static:plugins_core_devel']
+    platform_files = {
+            Platform.DARWIN: ['gstreamer-1.0-osx-framework'],
+            Platform.IOS: ['gstreamer-ios-templates'],
+            Platform.ANDROID: ['gst-android-1.0'],
+            }
+```
+
+You can see that many of the attributes are self-explanatory. Besides those,
+
+`deps` is a list of *other* packages that this package depends on
+
+`files_*` are variables defining files from other **recipes** that this package will contain
+
+The syntax `gst-plugins-bad-1.0:plugins_core:lang:libs:typelibs` means 'from the recipe gst-plugins-bad-1.0, include the core plugins (`files_plugins_core` in the recipe), the translations (`files_lang` in the recipe), the libraries (`files_libs` in the recipe) and GObject Introspection typelibs (`files_typelibs` in the recipe). You can think of the `:` separating the file types in the syntax as commas in a list.
+
+The development files syntax is exactly the same. For example, `plugins_core_devel` pulls in the core static plugins from the specified recipe.
+
+Each package file gets mapped to two 'units' of installation. For Linux distros, this means that each package file yields two `.deb` or `.rpm` files. One for runtime files (the `files` attribute above) and one for development files (the `files_devel` attribute above). Packages that don't list any files but have dependencies on other packages simply yield meta-rpms or meta-debs.
+
+For Windows, the selected package and all the dependency packages combined yield exactly two `.msi` installers. One for runtime files (`files`) and one for development filesi (`files_devel`). Each package then becomes a `feature` in the installer and the inter-package dependencies become inter-feature dependencies.
 
 ## Generating Visual Studio Projects and Solutions <a id="vs-projects"></a>
 
