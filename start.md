@@ -572,7 +572,7 @@ class Recipe(recipe.Recipe):
     stype = SourceType.GIT
     btype = BuildType.MESON
     patches = ['gst-plugins-base-1.0/0001-Fix-some-silly-bug.patch',
-               'gst-plugins-base-1.0/0002/Add-new-feature-foo.patch']
+               'gst-plugins-base-1.0/0002-Add-new-feature-foo.patch']
 ```
 
 The recipe is now ready for building!
