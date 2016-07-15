@@ -32,6 +32,8 @@ And so on.
  * [Generate Visual Studio projects](#vs-projects)
  * [Development Workflow](#dev-workflow)
 
+TODO: configuration, home directory structure (build tools, dist, etc)
+
 ## Directory Structure <a id="dir-structure"></a>
 
 Out of all the files and directories inside the Cerbero git directory, the following are the important ones:
