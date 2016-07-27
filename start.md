@@ -588,12 +588,13 @@ These two methods are very clean and will never cause strange Cerbero issues bec
 This method is a short-cut and will work most of the time, but if you mess up, you will lose all your changes. Also, if you don't understand how Cerbero works, you will likely install garbage to your install prefix and will have to `wipe` everything. The basic idea is that you can directly make changes to the Cerbero source repositories, invoke `make` or `ninja` manually, and check if your patches actually work. Here's a series of commands that show how to do this for a recipe that uses Meson and Ninja.
 
 ```sh
-$ cd ~/cerbero/sources/windows_x86/gstreamer-1.0-1.8
+$ python2 cerbero-uninstalled -c <config_file> shell
+$ cp -r ~/cerbero/sources/windows_x86/gstreamer-1.0-1.8
 # ... make quick changes ...
 $ cd cerbero-build-dir
 # This will invoke `meson` automatically if you changed the build files
 $ ninja -v
-$ GST_PLUGIN_PATH_1_0=$PWD/plugins/elements ./tools/gst-inspect-1.0.exe coreelements
+$ GST_PLUGIN_PATH_1_0=$PWD/plugins/elements gst-inspect-1.0.exe coreelements
 ```
 
 Be careful while running `ninja install` or `make install` since recipes sometimes have custom arguments, environment variables, `post_install` hooks, `gen_library_file`, etc that need to be done afterwards.
